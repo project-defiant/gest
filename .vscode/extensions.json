@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "ms-python.python",
+    "esbenp.prettier-vscode",
+    "redhat.vscode-yaml",
+    "fnando.linter",
+    "astral-sh.ty"
+  ],
+  "unwantedRecommendations": ["ms-python.flake8"]
+}
