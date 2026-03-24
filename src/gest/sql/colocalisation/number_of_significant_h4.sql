@@ -1,5 +1,5 @@
 SELECT
-    DISTINCT COUNT(*) AS number_of_significant_clpp,
+    COUNT(*) AS number_of_significant_h4,
     '{release}' AS release
 FROM
     colocalisation

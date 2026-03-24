@@ -14,10 +14,23 @@ dependencies = [
     "returns>=0.26.0",
     "streamlit>=1.55.0",
     "typer>=0.24.1",
+    "polars>=1.0.0",
 ]
+
+[project.scripts]
+gest = "gest.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gest", "app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
     "ruff>=0.15.7",
     "ty>=0.0.24",
 ]

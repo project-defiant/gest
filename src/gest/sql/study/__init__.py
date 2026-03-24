@@ -11,26 +11,26 @@ BASE_PATH = files("gest.sql.study")
 class StudyQuery(Enum):
     """Enum representing the different study queries."""
 
-    NUMBER_OF_GWAS_STUDIES = QueryFile(
-        file=str(BASE_PATH.joinpath("number_of_gwas_studies.sql")),
+    NUMBER_OF_STUDIES = QueryFile(
+        file=str(BASE_PATH.joinpath("number_of_studies.sql")),
         metadata=Metadata(
-            title="Number of GWAS studies",
-            description="Number of GWAS studies in the database.",
+            title="Number of studies",
+            description="Number of distinct studies in the database.",
         ),
     )
 
-    NUMBER_OF_GWAS_STUDIES_PER_PROJECT = QueryFile(
-        file=str(BASE_PATH.joinpath("number_of_gwas_studies_per_project.sql")),
+    TOTAL_COUNT_OF_STUDIES = QueryFile(
+        file=str(BASE_PATH.joinpath("total_count_of_studies.sql")),
         metadata=Metadata(
-            title="Number of GWAS studies per project",
-            description="Number of GWAS studies per project in the database.",
+            title="Total count of studies",
+            description="Total count of study rows in the database.",
         ),
     )
 
-    NUMBER_OF_GWAS_STUDIES_PER_STUDY_TYPE = QueryFile(
-        file=str(BASE_PATH.joinpath("number_of_gwas_studies_per_study_type.sql")),
+    NUMBER_OF_STUDIES_PER_STUDY_TYPE = QueryFile(
+        file=str(BASE_PATH.joinpath("number_of_studies_per_study_type.sql")),
         metadata=Metadata(
-            title="Number of GWAS studies per study type",
-            description="Number of GWAS studies per study type in the database.",
+            title="Number of studies per study type",
+            description="Number of distinct studies grouped by study type.",
         ),
     )
