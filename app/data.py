@@ -1,5 +1,6 @@
 """Data loading utilities for the Streamlit app."""
 
+import os
 import tempfile
 from pathlib import Path
 
@@ -8,9 +9,77 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+try:
+    from huggingface_hub import snapshot_download
+except ImportError:  # pragma: no cover - exercised when optional dep is missing
+    snapshot_download = None  # type: ignore[assignment]
+
 from gest import ReleaseReport
 
 DIFF_PREVIEW_ROWS = 10
+METRICS_PATH_ENV = "METRICS_PATH"
+HF_DATASET_PREFIX = "hf://datasets/"
+HF_DATASET_WEB_PREFIX = "https://huggingface.co/datasets/"
+
+
+def _extract_hf_dataset_id(metrics_path: str) -> str | None:
+    """Extract a Hugging Face dataset repo ID from a metrics path string.
+
+    :param metrics_path: Input metrics path candidate.
+    :return: Dataset repo ID when the input encodes a HF dataset, otherwise ``None``.
+    """
+    cleaned = metrics_path.strip().rstrip("/")
+
+    if cleaned.startswith(HF_DATASET_PREFIX):
+        repo_id = cleaned.removeprefix(HF_DATASET_PREFIX).strip("/")
+        return repo_id or None
+
+    if cleaned.startswith(HF_DATASET_WEB_PREFIX):
+        repo_id = cleaned.removeprefix(HF_DATASET_WEB_PREFIX).strip("/")
+        return repo_id or None
+
+    if cleaned.startswith(("/", "./", "../", "~")):
+        return None
+
+    if cleaned.count("/") == 1 and " " not in cleaned:
+        owner, name = cleaned.split("/", maxsplit=1)
+        if owner and name:
+            return cleaned
+
+    return None
+
+
+def _resolve_metrics_path(metrics_dir: str = "metrics") -> Path:
+    """Resolve where to read metrics from.
+
+    Reads from ``METRICS_PATH`` when set; otherwise falls back to ``metrics_dir``.
+    Supports local directories and Hugging Face dataset references.
+
+    :param metrics_dir: Local fallback metrics directory.
+    :return: Local path containing metric JSON and diff DuckDB files.
+    """
+    source = os.getenv(METRICS_PATH_ENV, metrics_dir)
+    source_path = Path(source).expanduser()
+    if source_path.exists():
+        return source_path
+
+    repo_id = _extract_hf_dataset_id(source)
+    if repo_id is None:
+        return source_path
+
+    if snapshot_download is None:
+        msg = (
+            "Hugging Face metrics source configured but dependency is missing. "
+            "Install `huggingface-hub` to use dataset-backed metrics."
+        )
+        raise RuntimeError(msg)
+
+    snapshot_path = snapshot_download(
+        repo_id=repo_id,
+        repo_type="dataset",
+        allow_patterns=["*.json", "diff_*.duckdb"],
+    )
+    return Path(snapshot_path)
 
 
 def _format_diff_label(table_name: str, domain: str) -> str:
@@ -31,10 +100,12 @@ def _format_diff_label(table_name: str, domain: str) -> str:
 def load_all_reports(metrics_dir: str = "metrics") -> list[ReleaseReport]:
     """Load all release report JSON files from the metrics directory.
 
-    :param metrics_dir: Path to the directory containing JSON report files.
+    :param metrics_dir: Local fallback path containing JSON report files.
+        The ``METRICS_PATH`` env var overrides this and may point to a local
+        folder or a Hugging Face dataset repo.
     :return: List of ReleaseReport objects.
     """
-    metrics_path = Path(metrics_dir)
+    metrics_path = _resolve_metrics_path(metrics_dir)
     if not metrics_path.exists():
         return []
     reports = []
@@ -484,10 +555,12 @@ def render_grouped_group(
 def load_diff_db(metrics_dir: str = "metrics") -> str | None:
     """Find a diff DuckDB file in the metrics directory.
 
-    :param metrics_dir: Path to the directory containing diff files.
+    :param metrics_dir: Local fallback path containing diff files.
+        The ``METRICS_PATH`` env var overrides this and may point to a local
+        folder or a Hugging Face dataset repo.
     :return: Path to the first diff DuckDB file found, or ``None``.
     """
-    metrics_path = Path(metrics_dir)
+    metrics_path = _resolve_metrics_path(metrics_dir)
     if not metrics_path.exists():
         return None
     matches = sorted(metrics_path.glob("diff_*.duckdb"))

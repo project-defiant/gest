@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "duckdb>=1.5.1",
+    "huggingface_hub>=1.1.2",
     "loguru>=0.7.3",
     "pandas>=2.3.3",
     "patito>=0.8.6",
@@ -28,9 +29,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = [
-    "pytest>=8.0",
-    "pytest-cov>=5.0",
-    "ruff>=0.15.7",
-    "ty>=0.0.24",
-]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.15.7", "ty>=0.0.24"]

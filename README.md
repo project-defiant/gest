@@ -69,6 +69,16 @@ streamlit run app/main.py
 
 The app reads all JSON reports from `metrics/` and displays every metric with a chart, data table, and CSV download button. Use the sidebar to select which releases to compare.
 
+To override the metrics source, set `METRICS_PATH`:
+
+```bash
+# Local directory
+METRICS_PATH=/path/to/metrics streamlit run app/main.py
+
+# Hugging Face dataset repo
+METRICS_PATH=owner/dataset-name streamlit run app/main.py
+```
+
 Domain-specific pages (Study, Credible Set, Colocalisation, Variant, L2G Prediction) are available in the sidebar navigation.
 
 ## Development

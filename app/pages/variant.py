@@ -1,5 +1,6 @@
 """Variant domain metrics page."""
 
+import plotly.express as px
 import streamlit as st
 
 from app.data import (
@@ -15,6 +16,8 @@ _COUNT_GROUP: list[str] = [
     "total_count_of_variants",
     "number_of_variants",
 ]
+
+_VARIANT_ASSESSMENT_METRIC = "variants_per_max_effect_assessment"
 
 st.header("Variant Metrics")
 
@@ -43,6 +46,27 @@ if not variant_metrics:
     st.stop()
 
 render_count_group(filtered, _COUNT_GROUP, "Variant Counts")
+
+if _VARIANT_ASSESSMENT_METRIC in variant_metrics:
+    assessment_df = metrics_to_dataframe(filtered, _VARIANT_ASSESSMENT_METRIC)
+    required_cols = {"max_assessment", "number_of_variants", "release"}
+    if not assessment_df.empty and required_cols.issubset(assessment_df.columns):
+        st.subheader("Variants by Maximum Effect Assessment")
+        assessment_chart = px.bar(
+            assessment_df,
+            x="max_assessment",
+            y="number_of_variants",
+            color="release",
+            barmode="group",
+            labels={
+                "max_assessment": "Assessment",
+                "number_of_variants": "Number of Variants",
+                "release": "Release",
+            },
+            title="Variants per max effect assessment",
+            template="plotly_white",
+        )
+        st.plotly_chart(assessment_chart, use_container_width=True)
 
 for metric_name in variant_metrics:
     if metric_name in _COUNT_GROUP:
